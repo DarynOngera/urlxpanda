@@ -2,6 +2,7 @@
   base = "web"
   command = "./build.sh"
   publish = "."
+  functions = "../.netlify/functions"
 
 [build.environment]
   CORS_ORIGIN = "*"
