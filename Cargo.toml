@@ -3,7 +3,6 @@ members = [
     "crates/urlxpanda-cli",
     "crates/urlxpanda-lib",
     "crates/urlxpanda-wasm",
-    "mobile",
 ]
 default-members = ["crates/urlxpanda-cli"]
 resolver = "2"
