@@ -14,10 +14,7 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
-[[redirects]]
-  from = "/api/expand"
-  to = "/.netlify/functions/expand"
-  status = 200
+
 
 [[headers]]
   for = "/*.wasm"
