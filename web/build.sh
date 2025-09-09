@@ -28,16 +28,6 @@ echo "🧹 Cleaning up unnecessary files..."
 cd web
 rm -f pkg/.gitignore pkg/package.json pkg/README.md
 
-# Create _redirects file for SPA routing
-cat > _redirects << 'EOF'
-# API routes to Netlify functions
-/api/* /.netlify/functions/:splat 200
-/api/expand /.netlify/functions/expand 200
-
-# SPA fallback - serve index.html for all other routes
-/* /index.html 200
-EOF
-
 echo "✅ Build completed successfully!"
 echo ""
 echo "🚀 Ready for Netlify deployment!"
@@ -45,4 +35,3 @@ echo ""
 echo "📦 Files generated:"
 echo "   - pkg/urlxpanda_wasm.js (WASM bindings)"
 echo "   - pkg/urlxpanda_wasm_bg.wasm (WASM module)"
-echo "   - _redirects (SPA routing rules)"

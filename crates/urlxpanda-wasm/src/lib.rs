@@ -82,7 +82,7 @@ async fn expand_url_simple(url: &str) -> Result<ExpansionResult, String> {
     console_log!("Expanding URL via backend: {}", url);
     
     // Call our backend API
-    let api_url = format!("/.netlify/functions/expand?url={}", js_sys::encode_uri_component(url));
+    let api_url = format!("/api/expand?url={}", js_sys::encode_uri_component(url));
     
     let mut opts = RequestInit::new();
     opts.set_method("GET");
