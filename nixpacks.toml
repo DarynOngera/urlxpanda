@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["python3"]
+
+[phases.build]
+cmds = ["sh -c 'cd web && ./build.sh'"]
+
+[start]
+cmd = "sh -c 'cd web && python3 serve.py'"
