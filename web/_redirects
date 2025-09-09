@@ -1,0 +1,7 @@
+/*  _redirects file for Netlify SPA routing */
+# API routes to Netlify functions
+/api/* /.netlify/functions/:splat 200
+/api/expand /.netlify/functions/expand 200
+
+# SPA fallback - serve index.html for all other routes
+/* /index.html 200
