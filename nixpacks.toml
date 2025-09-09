@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["python3"]
+nixPkgs = ["python3", "gcc"]
 
 [phases.build]
 cmds = ["sh -c 'cd web && ./build.sh'"]
