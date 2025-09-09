@@ -146,10 +146,13 @@ class URLXpandaApp {
             
             const result = await this.urlExpander.expand_url(url);
             console.log('Expansion result:', result);
+            console.log('Has metadata:', !!result.metadata);
             
             if (result.metadata) {
+                console.log('Showing rich result with metadata');
                 this.showRichResult(result);
             } else {
+                console.log('Showing simple result - no metadata');
                 this.showSimpleResult(result);
             }
             this.addToHistory(result.original_url, result.final_url, result.expansion_time_ms);

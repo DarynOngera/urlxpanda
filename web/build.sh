@@ -43,37 +43,6 @@ cat > package.json << 'EOF'
 }
 EOF
 
-echo "🌐 Creating development server script..."
-cat > serve.py << 'EOF'
-#!/usr/bin/env python3
-"""
-Simple HTTP server with CORS headers for WASM development
-"""
-import http.server
-import socketserver
-from http.server import SimpleHTTPRequestHandler
-
-class CORSRequestHandler(SimpleHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header('Cross-Origin-Embedder-Policy', 'require-corp')
-        self.send_header('Cross-Origin-Opener-Policy', 'same-origin')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        super().end_headers()
-
-PORT = 8000
-Handler = CORSRequestHandler
-
-with socketserver.TCPServer(("", PORT), Handler) as httpd:
-    print(f"🚀 Server running at http://localhost:{PORT}")
-    print("📱 Open this URL in your browser to use URLXpanda")
-    print("⏹️  Press Ctrl+C to stop the server")
-    httpd.serve_forever()
-EOF
-
-chmod +x serve.py
-
 echo "📋 Creating README for web frontend..."
 cat > README.md << 'EOF'
 # URLXpanda Web Frontend
@@ -191,7 +160,7 @@ EOF
 
 echo "✅ Build completed successfully!"
 echo ""
-echo "🚀 To start the development server:"
+echo "🚀 To start the backend server:"
 echo "   cd web && python3 serve.py"
 echo ""
 echo "🌐 Then open: http://localhost:8000"
@@ -200,5 +169,4 @@ echo "📦 Files generated:"
 echo "   - pkg/urlxpanda_wasm.js (WASM bindings)"
 echo "   - pkg/urlxpanda_wasm_bg.wasm (WASM module)"
 echo "   - package.json (Node.js config)"
-echo "   - serve.py (Development server)"
 echo "   - README.md (Documentation)"

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: urlxpanda
+    runtime: python3
+    buildCommand: cd web && ./build.sh
+    startCommand: cd web && python3 serve.py
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: MAX_REDIRECTS
+        value: 10
+      - key: REQUEST_TIMEOUT
+        value: 10
