@@ -1,9 +1,9 @@
 services:
   - type: web
     name: urlxpanda
-    runtime: python3
+    runtime: python
     buildCommand: cd web && ./build.sh
-    startCommand: cd web && python3 serve.py
+    startCommand: cd web && python serve.py
     envVars:
       - key: PORT
         value: 10000

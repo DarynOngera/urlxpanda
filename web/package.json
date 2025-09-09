@@ -1,18 +1,19 @@
 {
-  "name": "urlxpanda-web",
-  "version": "0.1.0",
-  "description": "URLXpanda Web Frontend",
-  "main": "app.js",
+  "name": "urlxpanda",
+  "version": "1.0.0",
+  "description": "URLXpanda - Expand Shortened URLs Safely",
+  "main": "index.html",
   "scripts": {
-    "build": "../build.sh",
-    "serve": "python3 -m http.server 8000",
-    "serve-node": "npx serve .",
+    "build": "./build.sh",
+    "deploy": "netlify deploy --prod",
     "dev": "python3 -m http.server 8000"
   },
-  "keywords": ["url", "expansion", "wasm", "rust"],
-  "author": "URLXpanda Team",
+  "keywords": ["url", "expansion", "wasm", "rust", "privacy"],
+  "author": "Daryn Ongera",
   "license": "MIT",
-  "devDependencies": {
-    "serve": "^14.0.0"
-  }
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DarynOngera/urlxpanda"
+  },
+  "homepage": "https://urlxpanda.netlify.app"
 }

@@ -35,6 +35,10 @@ python3 serve.py
 # Open http://localhost:8000
 ```
 
+## 🚀 Quick Deploy to Netlify
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/DarynOngera/urlxpanda)
+
 ## 📦 Installation Options
 
 ### 1. Browser Extension
@@ -125,16 +129,27 @@ urlxpanda/
 
 ## 🌐 Deployment
 
-### Deploy to Render
+### Deploy to Netlify (Free)
+
+1. **Fork this repository** on GitHub
+2. **Connect to Netlify**:
+   - Go to [netlify.com](https://netlify.com) and sign up/login
+   - Click "New site from Git"
+   - Connect your GitHub account and select your forked repository
+3. **Configure build settings**:
+   - Build command: `cd web && ./build.sh`
+   - Publish directory: `web`
+   - Functions directory: `netlify/functions`
+4. **Deploy**: Netlify will automatically build and deploy your site
+
+Your URLXpanda will be available at `https://your-site-name.netlify.app`
+
+### Deploy to Vercel (Alternative)
 
 1. Fork this repository
-2. Connect your GitHub account to [Render](https://render.com)
-3. Create a new Web Service
-4. Connect your forked repository
-5. Use these settings:
-   - **Build Command**: `cd web && ./build.sh`
-   - **Start Command**: `cd web && python3 serve.py`
-   - **Environment**: Python 3
+2. Connect your GitHub account to [Vercel](https://vercel.com)
+3. Import your repository
+4. Vercel will automatically detect the `vercel.json` configuration
 
 ### Manual Deployment
 
@@ -266,6 +281,56 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Blog**: [ongeradaryn.blog](https://ongeradaryn.blog/about)
 
 ---
+
+## 📦 Final Deployment Summary
+
+Your **URLXpanda** project is now fully configured for **free Netlify deployment**! Here's what we've set up:
+
+### ✅ **Complete Netlify Setup:**
+
+1. **📁 Configuration Files:**
+   - `netlify.toml` - Build and deployment configuration
+   - `netlify/functions/expand.py` - Serverless URL expansion API
+   - `web/package.json` - Package configuration
+
+2. **🔧 Updated Components:**
+   - WASM module calls `/.netlify/functions/expand` instead of localhost
+   - Build script optimized for Netlify deployment
+   - CORS headers configured for WASM files
+
+3. **📚 Documentation:**
+   - Updated README with one-click deployment button
+   - Comprehensive DEPLOYMENT.md guide
+   - Step-by-step setup instructions
+
+### 🚀 **Next Steps:**
+
+1. **Push to GitHub:**
+   ```bash
+   git add .
+   git commit -m "Ready for Netlify deployment"
+   git push origin main
+   ```
+
+2. **Deploy to Netlify:**
+   - Click the deploy button in README
+   - Or manually connect GitHub repo to Netlify
+   - Use settings: Build command `cd web && ./build.sh`, Publish directory `web`
+
+3. **Test Your Deployment:**
+   - URLXpanda will be live at `https://your-site.netlify.app`
+   - Test URL expansion with `https://bit.ly/example`
+   - Verify browser extension still works with the new API
+
+### 🎯 **What's Ready:**
+
+- **Web App**: Full WASM-powered URL expansion
+- **Browser Extension**: Works with any backend
+- **Mobile App**: Ready for Android/iOS builds
+- **CLI Tool**: Standalone command-line usage
+- **Free Hosting**: Complete Netlify deployment
+
+Your URLXpanda project is **production-ready** and can be deployed instantly to Netlify for free! 🎉
 
 <div align="center">
   <p>Made with ❤️ by <a href="https://ongeradaryn.blog/about">Daryn Ongera</a></p>
