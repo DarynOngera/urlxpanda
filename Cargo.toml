@@ -1,0 +1,20 @@
+[workspace]
+members = [
+    "crates/urlxpanda-cli",
+    "crates/urlxpanda-lib",
+    "crates/urlxpanda-wasm",
+]
+default-members = ["crates/urlxpanda-cli"]
+resolver = "2"
+
+[profile.release]
+# Optimize for size for WASM builds
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+# Faster compilation for development
+opt-level = 0
+debug = true

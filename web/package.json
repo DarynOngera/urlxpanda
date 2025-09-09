@@ -1,0 +1,18 @@
+{
+  "name": "urlxpanda-web",
+  "version": "0.1.0",
+  "description": "URLXpanda Web Frontend",
+  "main": "app.js",
+  "scripts": {
+    "build": "../build.sh",
+    "serve": "python3 -m http.server 8000",
+    "serve-node": "npx serve .",
+    "dev": "python3 -m http.server 8000"
+  },
+  "keywords": ["url", "expansion", "wasm", "rust"],
+  "author": "URLXpanda Team",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}
