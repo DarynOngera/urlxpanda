@@ -1,5 +1,0 @@
-[phases.build]
-cmds = ["sh -c 'cd web && ./build.sh'"]
-
-[start]
-cmd = "sh -c 'cd web && python serve.py'"
