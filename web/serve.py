@@ -260,7 +260,9 @@ class URLXpandaHandler(SimpleHTTPRequestHandler):
         error_response = {'error': message}
         self.wfile.write(json.dumps(error_response).encode())
 
-PORT = 8000
+import os
+
+PORT = int(os.environ.get("PORT", 8000))
 Handler = URLXpandaHandler
 
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
