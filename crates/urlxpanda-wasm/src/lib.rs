@@ -2,6 +2,7 @@ use wasm_bindgen::prelude::*;
 use js_sys::Promise;
 use wasm_bindgen_futures::future_to_promise;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 // Console logging macro
 macro_rules! console_log {
@@ -68,7 +69,7 @@ impl UrlExpander {
 }
 
 async fn expand_url_simple(url: &str) -> Result<ExpansionResult, String> {
-    use web_sys::{Request, RequestInit, Response};
+    use web_sys::{Request, RequestInit, Response, Headers};
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::JsFuture;
     
@@ -79,44 +80,98 @@ async fn expand_url_simple(url: &str) -> Result<ExpansionResult, String> {
         return Err("Invalid URL format".to_string());
     }
     
-    console_log!("Expanding URL via backend: {}", url);
+    let mut current_url = url.to_string();
+    let mut redirect_chain: Vec<RedirectHop> = Vec::new();
+    let max_redirects = 10;
     
-    // Call our backend API
-    let api_url = format!("/api/expand?url={}", js_sys::encode_uri_component(url));
+    // Add initial URL
+    redirect_chain.push(RedirectHop {
+        url: url.to_string(),
+        status_code: 0,
+        is_final: false,
+    });
     
-    let mut opts = RequestInit::new();
-    opts.set_method("GET");
-    
-    let request = Request::new_with_str_and_init(&api_url, &opts)
-        .map_err(|e| format!("Failed to create request: {:?}", e))?;
-
-    let window = web_sys::window().ok_or("No global window object")?;
-    let resp_value = JsFuture::from(window.fetch_with_request(&request))
-        .await
-        .map_err(|e| format!("Backend request failed: {:?}", e))?;
-
-    let resp: Response = resp_value.dyn_into()
-        .map_err(|e| format!("Failed to cast response: {:?}", e))?;
-
-    if !resp.ok() {
-        return Err(format!("Backend returned error: {}", resp.status()));
+    for i in 0..max_redirects {
+        console_log!("Following redirect {}: {}", i + 1, current_url);
+        
+        let mut opts = RequestInit::new();
+        opts.set_method("GET");
+        opts.set_mode(web_sys::RequestMode::Cors); // Allow CORS for external URLs
+        
+        let request = Request::new_with_str_and_init(&current_url, &opts)
+            .map_err(|e| format!("Failed to create request: {:?}", e))?;
+        
+        let window = web_sys::window().ok_or("No global window object")?;
+        let resp_value = JsFuture::from(window.fetch_with_request(&request))
+            .await
+            .map_err(|e| format!("Fetch failed: {:?}", e))?;
+        
+        let resp: Response = resp_value.dyn_into()
+            .map_err(|e| format!("Failed to cast response: {:?}", e))?;
+        
+        let status_code = resp.status();
+        
+        // Update the last hop with status
+        if let Some(last) = redirect_chain.last_mut() {
+            last.status_code = status_code as u16;
+        }
+        
+        if status_code >= 300 && status_code < 400 {
+            // Redirect
+            let headers = resp.headers();
+            let location = headers.get("location")
+                .map_err(|_| "Failed to get location header".to_string())?;
+            
+            if location.is_none() {
+                // No location, treat as final
+                if let Some(last) = redirect_chain.last_mut() {
+                    last.is_final = true;
+                }
+                break;
+            }
+            
+            let location = location.unwrap();
+            
+            // Resolve relative URLs
+            let next_url = Url::parse(&current_url)
+                .map_err(|_| "Failed to parse current URL".to_string())?
+                .join(&location)
+                .map_err(|_| "Failed to join URLs".to_string())?
+                .to_string();
+            
+            redirect_chain.push(RedirectHop {
+                url: next_url.clone(),
+                status_code: 0,
+                is_final: false,
+            });
+            
+            current_url = next_url;
+            continue;
+        } else {
+            // Not a redirect, final
+            if let Some(last) = redirect_chain.last_mut() {
+                last.is_final = true;
+            }
+            break;
+        }
     }
-
-    let json_value = JsFuture::from(resp.json().map_err(|e| format!("Failed to get JSON: {:?}", e))?)
-        .await
-        .map_err(|e| format!("Failed to parse JSON: {:?}", e))?;
-
-    let json_str = js_sys::JSON::stringify(&json_value)
-        .map_err(|e| format!("Failed to stringify JSON: {:?}", e))?;
-
-    let result: ExpansionResult = serde_json::from_str(&json_str.as_string().unwrap_or_default())
-        .map_err(|e| format!("Failed to deserialize result: {}", e))?;
-
-    console_log!("Expansion completed: {} -> {}", result.original_url, result.final_url);
     
-    Ok(result)
+    // Ensure at least one is final
+    if let Some(last) = redirect_chain.last_mut() {
+        if !last.is_final {
+            last.is_final = true;
+        }
+    }
+    
+    let expansion_time_ms = (js_sys::Date::now() as u32) - start_time;
+    
+    Ok(ExpansionResult {
+        original_url: url.to_string(),
+        final_url: current_url,
+        redirect_chain,
+        expansion_time_ms,
+    })
 }
-
 
 // Initialize function called when WASM module loads
 #[wasm_bindgen(start)]
