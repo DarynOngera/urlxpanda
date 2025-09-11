@@ -180,7 +180,7 @@
                 <div class="footer-links">
                     <a href="https://github.com/DarynOngera/urlxpanda" target="_blank" rel="noopener">GitHub</a>
                     <span>•</span>
-                    <a href="/urlxpanda-extension.zip" download>Download Extension</a>
+                    <a href="#" id="download-link">Download Extension</a>
                     <span>•</span>
                     <a href="#" id="about-link">About</a>
                     <span>•</span>
@@ -198,17 +198,43 @@
                 <button id="close-modal" class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <p>URLXpanda is a fast and secure URL expansion tool built with Rust and WebAssembly.</p>
+                <p>URLXpanda is a fast and secure URL expansion tool built with Rust.</p>
                 <h4>Features:</h4>
                 <ul>
                     <li>Secure client-side URL expansion</li>
                     <li>Support for all major URL shorteners</li>
                     <li>Configurable redirect limits and timeouts</li>
                     <li>No data sent to external servers</li>
-                    <li>Fast WebAssembly performance</li>
                 </ul>
                 <h4>Privacy:</h4>
                 <p>To generate link previews, the URL you enter is processed to expand it and to fetch metadata (like the page title, description, and preview image). We do not log or store the URLs you enter.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Modal -->
+    <div id="download-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Install URLXpanda Extension</h2>
+                <button id="close-download-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Follow these steps to install the URLXpanda extension in your browser:</p>
+                <h4>Google Chrome & Brave</h4>
+                <ol>
+                    <li><a href="/urlxpanda-extension.zip" download>Download the extension</a> and unzip it.</li>
+                    <li>Open Chrome and navigate to <code>chrome://extensions/</code></li>
+                    <li>Enable "Developer mode" (toggle in top right).</li>
+                    <li>Click "Load unpacked" and select the unzipped extension folder.</li>
+                </ol>
+                <h4>Mozilla Firefox</h4>
+                <ol>
+                    <li><a href="/urlxpanda-extension.zip" download>Download the extension</a>.</li>
+                    <li>Open Firefox and navigate to <code>about:debugging</code>.</li>
+                    <li>Click "This Firefox" in the sidebar.</li>
+                    <li>Click "Load Temporary Add-on" and select the downloaded <code>.zip</code> file.</li>
+                </ol>
             </div>
         </div>
     </div>

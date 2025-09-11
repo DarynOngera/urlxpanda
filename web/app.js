@@ -35,6 +35,9 @@ class URLXpandaApp {
         this.aboutModal = document.getElementById('about-modal');
         this.aboutLink = document.getElementById('about-link');
         this.closeModalBtn = document.getElementById('close-modal');
+        this.downloadModal = document.getElementById('download-modal');
+        this.downloadLink = document.getElementById('download-link');
+        this.closeDownloadModalBtn = document.getElementById('close-download-modal');
     }
 
     attachEventListeners() {
@@ -50,19 +53,30 @@ class URLXpandaApp {
         this.retryBtn.addEventListener('click', () => this.expandUrl());
         this.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
 
-        // Modal
         this.aboutLink.addEventListener('click', (e) => {
             e.preventDefault();
-            this.showModal();
+            this.showModal('about');
         });
-        this.closeModalBtn.addEventListener('click', () => this.hideModal());
+        this.closeModalBtn.addEventListener('click', () => this.hideModal('about'));
         this.aboutModal.addEventListener('click', (e) => {
-            if (e.target === this.aboutModal) this.hideModal();
+            if (e.target === this.aboutModal) this.hideModal('about');
+        });
+
+        this.downloadLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showModal('download');
+        });
+        this.closeDownloadModalBtn.addEventListener('click', () => this.hideModal('download'));
+        this.downloadModal.addEventListener('click', (e) => {
+            if (e.target === this.downloadModal) this.hideModal('download');
         });
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') this.hideModal();
+            if (e.key === 'Escape') {
+                this.hideModal('about');
+                this.hideModal('download');
+            }
             if (e.ctrlKey && e.key === 'Enter') this.expandUrl();
         });
     }
@@ -516,13 +530,15 @@ class URLXpandaApp {
     }
 
     // Modal management
-    showModal() {
-        this.aboutModal.classList.remove('hidden');
+    showModal(type) {
+        const modal = type === 'about' ? this.aboutModal : this.downloadModal;
+        modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
 
-    hideModal() {
-        this.aboutModal.classList.add('hidden');
+    hideModal(type) {
+        const modal = type === 'about' ? this.aboutModal : this.downloadModal;
+        modal.classList.add('hidden');
         document.body.style.overflow = '';
     }
 

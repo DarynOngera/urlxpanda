@@ -973,7 +973,7 @@ body {
     color: var(--text-primary);
 }
 
-.modal-body ul {
+.modal-body ul, .modal-body ol {
     margin-left: 1.5rem;
     margin-bottom: 1rem;
 }
