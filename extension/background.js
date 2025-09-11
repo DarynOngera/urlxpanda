@@ -31,7 +31,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       autoExpand: true,
       showPreviews: true,
       safetyWarnings: true,
-      expandOnHover: false,
+      expandOnHover: true,
       blacklistedDomains: []
     }, (settings) => {
       sendResponse(settings);

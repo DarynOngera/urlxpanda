@@ -25,7 +25,13 @@ class URLXpandaContent {
   async getSettings() {
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ action: 'getSettings' }, (response) => {
-        resolve(response || {});
+        if (chrome.runtime.lastError) {
+          // Handle error, e.g., by resolving with default settings
+          console.warn('URLXpanda: Could not connect to background script to get settings.');
+          resolve({});
+        } else {
+          resolve(response || {});
+        }
       });
     });
   }
@@ -66,13 +72,16 @@ class URLXpandaContent {
   }
 
   processLink(link) {
+    console.log('URLXpanda: Processing link:', link.href);
     const url = link.href;
     
     // Check if this is a shortened URL
     if (this.isShortenedUrl(url)) {
+      console.log('URLXpanda: Found shortened URL:', url);
       this.addLinkIndicator(link);
       
       if (this.settings.expandOnHover) {
+        console.log('URLXpanda: expandOnHover is enabled');
         this.addHoverExpansion(link);
       }
       
@@ -119,6 +128,7 @@ class URLXpandaContent {
   }
 
   addHoverExpansion(link) {
+    console.log('URLXpanda: Adding hover expansion for:', link.href);
     let hoverTimeout;
     
     link.addEventListener('mouseenter', () => {
@@ -167,7 +177,9 @@ class URLXpandaContent {
       chrome.runtime.sendMessage(
         { action: 'expandUrl', url: url },
         (response) => {
-          if (response.success) {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else if (response.success) {
             resolve(response.data);
           } else {
             reject(new Error(response.error));
@@ -198,14 +210,17 @@ class URLXpandaContent {
   }
 
   showLinkPreview(link) {
+    console.log('URLXpanda: Showing link preview for:', link.href);
     const url = link.href;
     const result = this.expandedUrls.get(url);
     
     if (!result) {
+      console.log('URLXpanda: No cached result, expanding URL...');
       this.expandLink(link);
       return;
     }
     
+    console.log('URLXpanda: Found cached result, creating tooltip...');
     this.createTooltip(link, result);
   }
 

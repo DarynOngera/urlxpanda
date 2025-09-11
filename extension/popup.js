@@ -61,12 +61,17 @@ class URLXpandaPopup {
   async loadSettings() {
     this.settings = await new Promise((resolve) => {
       chrome.runtime.sendMessage({ action: 'getSettings' }, (response) => {
-        resolve(response || {
-          autoExpand: true,
-          showPreviews: true,
-          safetyWarnings: true,
-          expandOnHover: false
-        });
+        if (chrome.runtime.lastError) {
+          console.warn('URLXpanda: Could not connect to background script to get settings.');
+          resolve({
+            autoExpand: true,
+            showPreviews: true,
+            safetyWarnings: true,
+            expandOnHover: true
+          });
+        } else {
+resolve(response || {});
+        }
       });
     });
     
@@ -113,7 +118,9 @@ class URLXpandaPopup {
       chrome.runtime.sendMessage(
         { action: 'expandUrl', url: url },
         (response) => {
-          if (response.success) {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else if (response.success) {
             resolve(response.data);
           } else {
             reject(new Error(response.error));
@@ -245,7 +252,12 @@ class URLXpandaPopup {
     await new Promise((resolve) => {
       chrome.runtime.sendMessage(
         { action: 'saveSettings', settings: newSettings },
-        () => resolve()
+        () => {
+          if (chrome.runtime.lastError) {
+            console.warn('URLXpanda: Could not connect to background script to save settings.');
+          }
+          resolve();
+        }
       );
     });
     
