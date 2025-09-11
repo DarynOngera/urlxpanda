@@ -1,5 +1,5 @@
 // URLXpanda Browser Extension - Background Script
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 'https://urlxpanda-production.up.railway.app/api';
 
 // Create context menu on installation
 chrome.runtime.onInstalled.addListener(() => {

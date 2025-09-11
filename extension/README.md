@@ -36,9 +36,7 @@ A powerful browser extension that expands shortened URLs in-place and provides r
 
 ## Setup
 
-1. Make sure the URLXpanda server is running on `http://localhost:8000`
-2. Start the server with: `cd web && python3 serve.py`
-3. The extension will automatically connect to the local API
+The extension is pre-configured to use the production URLXpanda server. No additional setup is required.
 
 ## Usage
 
@@ -75,7 +73,7 @@ Access settings through the extension popup:
 
 ## API Integration
 
-The extension connects to the URLXpanda backend API running on `localhost:8000`. The API provides:
+The extension connects to the URLXpanda backend API running at `https://urlxpanda-production.up.railway.app`. The API provides:
 
 - URL expansion with redirect following
 - Open Graph metadata extraction
@@ -84,9 +82,9 @@ The extension connects to the URLXpanda backend API running on `localhost:8000`.
 
 ## Privacy & Security
 
-- All URL expansion happens locally through your own server
-- No data is sent to external services
-- URLs are processed through your local URLXpanda instance
+- All URL expansion happens through the production URLXpanda server.
+- No data is sent to external services other than the URLXpanda server.
+
 - Safety warnings help identify potentially malicious links
 
 ## Development
@@ -116,13 +114,12 @@ The extension is ready to use as-is. No build process required.
 ## Troubleshooting
 
 ### Extension Not Working
-- Ensure the URLXpanda server is running on `localhost:8000`
 - Check browser console for error messages
 - Verify extension permissions are granted
 
 ### URLs Not Expanding
 - Check if the domain is in the supported shorteners list
-- Verify network connectivity to localhost:8000
+- Verify network connectivity to the URLXpanda server
 - Look for CORS or permission errors in console
 
 ### Previews Not Showing
