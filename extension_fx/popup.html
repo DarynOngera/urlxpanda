@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URLXpanda</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-container">
+        <header class="popup-header">
+            <h1>URLXpanda</h1>
+            <p>Expand and preview URLs safely</p>
+        </header>
+
+        <main class="popup-main">
+            <div class="url-input-section">
+                <input 
+                    type="url" 
+                    id="urlInput" 
+                    placeholder="Enter URL to expand..."
+                    class="url-input"
+                >
+                <button id="expandBtn" class="expand-btn">
+                    <span class="btn-text">Expand</span>
+                    <span class="btn-loading">⏳</span>
+                </button>
+            </div>
+
+            <div id="result" class="result-section hidden">
+                <div class="result-header">
+                    <h3>Expansion Result</h3>
+                </div>
+                
+                <div class="url-info">
+                    <div class="url-row">
+                        <label>Original:</label>
+                        <span id="originalUrl" class="url-text"></span>
+                    </div>
+                    <div class="url-row">
+                        <label>Final:</label>
+                        <span id="finalUrl" class="url-text"></span>
+                    </div>
+                    <div class="meta-info">
+                        <span id="redirectCount"></span>
+                        <span id="expansionTime"></span>
+                    </div>
+                </div>
+
+                <div id="previewCard" class="preview-card hidden">
+                    <!-- Preview content will be inserted here -->
+                </div>
+
+                <div class="result-actions">
+                    <button id="copyBtn" class="action-btn">Copy Final URL</button>
+                    <button id="visitBtn" class="action-btn primary">Visit Page</button>
+                </div>
+            </div>
+
+            <div id="error" class="error-section hidden">
+                <div class="error-icon">⚠️</div>
+                <div class="error-message"></div>
+            </div>
+        </main>
+
+        <footer class="popup-footer">
+            <div class="settings-section">
+                <button id="settingsBtn" class="settings-btn">⚙️ Settings</button>
+            </div>
+        </footer>
+
+        <div id="settingsModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>URLXpanda Settings</h3>
+                    <button id="closeSettings" class="close-btn">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <input type="checkbox" id="autoExpand" class="setting-checkbox">
+                            <span class="checkmark"></span>
+                            Auto-expand shortened URLs
+                        </label>
+                        <p class="setting-description">Automatically expand shortened URLs in the background</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <input type="checkbox" id="showPreviews" class="setting-checkbox">
+                            <span class="checkmark"></span>
+                            Show link previews
+                        </label>
+                        <p class="setting-description">Display rich previews with titles and descriptions</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <input type="checkbox" id="expandOnHover" class="setting-checkbox">
+                            <span class="checkmark"></span>
+                            Expand on hover
+                        </label>
+                        <p class="setting-description">Show preview tooltip when hovering over links</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <input type="checkbox" id="safetyWarnings" class="setting-checkbox">
+                            <span class="checkmark"></span>
+                            Safety warnings
+                        </label>
+                        <p class="setting-description">Show warnings for potentially unsafe URLs</p>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="saveSettings" class="action-btn primary">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

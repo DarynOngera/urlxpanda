@@ -69,6 +69,108 @@ The Netlify build will:
 - Check browser console for errors
 - Verify WASM files are generated in `pkg/`
 
+## 🚂 Render Deployment (Recommended for Backend)
+
+### Prerequisites
+- GitHub account
+- Render account (free at [render.com](https://render.com))
+
+### Step-by-Step Instructions
+
+1. **Fork the Repository**
+   ```bash
+   # Go to https://github.com/DarynOngera/urlxpanda
+   # Click "Fork" in the top right
+   ```
+
+2. **Connect to Render**
+   - Login to [render.com](https://render.com)
+   - Click "New +" → "Blueprint"
+   - Connect your GitHub account if not already connected
+   - Select your forked `urlxpanda` repository
+   - Render will automatically detect the `render.yaml` file
+
+3. **Configure Deployment**
+   - Review the detected configuration from `render.yaml`
+   - Service name: `urlxpanda`
+   - Build command: `cd web && ./build.sh`
+   - Start command: `cd web && python3 serve.py`
+   - Plan: Free (or upgrade as needed)
+
+4. **Environment Variables** (Auto-configured from render.yaml)
+   ```
+   PORT=10000
+   CORS_ORIGIN=*
+   MAX_REDIRECTS=10
+   REQUEST_TIMEOUT=10
+   PYTHON_VERSION=3.11
+   ```
+
+5. **Deploy**
+   - Click "Apply" to create the service
+   - Render will automatically build and deploy
+   - Your service will be available at `https://urlxpanda.onrender.com`
+   - Note: Free tier services spin down after inactivity (may take 30s to wake up)
+
+6. **Custom Domain** (Optional)
+   - Go to your service → Settings → Custom Domain
+   - Add your custom domain
+   - Configure DNS records as instructed by Render
+
+### Build Process
+The Render build will:
+1. Install Python 3.11
+2. Install Rust and wasm-pack via `build.sh`
+3. Compile the WASM module
+4. Generate JavaScript bindings
+5. Start the Python server on port 10000
+
+### Troubleshooting
+
+**Build Fails:**
+- Check build logs in Render dashboard
+- Ensure `build.sh` has execute permissions: `chmod +x web/build.sh`
+- Verify Rust/wasm-pack installation in build logs
+
+**Service Not Starting:**
+- Check the Logs tab in Render dashboard
+- Verify Python version is 3.11+
+- Ensure PORT environment variable is set
+
+**Slow First Request:**
+- Free tier services spin down after 15 minutes of inactivity
+- First request may take 30+ seconds to wake up
+- Consider upgrading to paid tier for always-on service
+
+**CORS Issues:**
+- Verify `CORS_ORIGIN` environment variable is set to `*`
+- Check server logs for CORS-related errors
+
+### Migrating from Railway
+
+If you're migrating from Railway:
+
+1. **Export Environment Variables** (if any custom ones)
+   - Go to your Railway project → Variables
+   - Copy any custom environment variables
+   - Add them to `render.yaml` or Render dashboard
+
+2. **Update API Endpoints**
+   - Change your frontend API URLs from Railway to Render
+   - Update any hardcoded URLs in your code
+
+3. **Database Migration** (if applicable)
+   - Export data from Railway database
+   - Import to Render database or use external database
+
+4. **DNS Update**
+   - Update your DNS records to point to Render
+   - Remove Railway custom domain
+
+5. **Delete Railway Service**
+   - Once everything is working on Render
+   - Delete the Railway service to avoid charges
+
 ## 🔄 Vercel Deployment (Alternative)
 
 ### Quick Deploy
