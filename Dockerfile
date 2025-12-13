@@ -2,7 +2,7 @@
 # Multi-stage build for optimized image size
 
 # Stage 1: Build WASM
-FROM rust:1.75-slim as wasm-builder
+FROM rust:1.83-slim as wasm-builder
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
