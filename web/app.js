@@ -484,15 +484,6 @@ class URLXpandaApp {
         return `
             <div class="safety-indicators ${riskLevel}">
                 <div class="safety-header">
-                    <div class="safety-score">
-                        <div class="score-details">
-                            <span class="score-label">${scoreLabel}</span>
-                            <div class="score-bar-container">
-                                <div class="score-bar" style="width: ${score}%; background-color: ${scoreColor};"></div>
-                            </div>
-                            <span class="score-value">${score}/100</span>
-                        </div>
-                    </div>
                     ${this.generateGoogleSafeBrowsingBadge(safety)}
                     <p class="safety-info">${this.getSafetyInfoText(safety)}</p>
                 </div>
