@@ -413,15 +413,22 @@ class URLXpandaApp {
         const warningItems = warnings.map(warning => {
             const severityClass = warning.severity || 'low';
             const severityIcon = {
+                'critical': '🛑',
                 'high': '🚨',
                 'medium': '⚠️',
                 'low': 'ℹ️'
             }[severityClass] || 'ℹ️';
             
+            const sourceTag = warning.source ? 
+                `<span class="warning-source">${this.escapeHtml(warning.source)}</span>` : '';
+            
             return `
                 <li class="warning-item severity-${severityClass}">
                     <span class="warning-icon">${severityIcon}</span>
-                    <span class="warning-text">${this.escapeHtml(warning.message)}</span>
+                    <div class="warning-content">
+                        <span class="warning-text">${this.escapeHtml(warning.message)}</span>
+                        ${sourceTag}
+                    </div>
                 </li>
             `;
         }).join('');
@@ -438,7 +445,7 @@ class URLXpandaApp {
                             <span class="score-value">${score}/100</span>
                         </div>
                     </div>
-                    <p class="safety-info">Security analysis performed locally on your device</p>
+                    <p class="safety-info">Security analysis using Google Safe Browsing API + pattern matching</p>
                 </div>
                 ${warnings.length > 0 ? `
                     <div class="safety-warnings">

@@ -37,6 +37,8 @@ services:
         value: 10
       - key: PYTHON_VERSION
         value: 3.11
+      - key: GOOGLE_SAFE_BROWSING_API_KEY
+        sync: false  # Set this in Render dashboard as a secret
 
 # Option 2: Docker Build (Uncomment to use)
 # services:

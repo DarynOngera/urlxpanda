@@ -313,9 +313,163 @@ class URLXpandaHandler(SimpleHTTPRequestHandler):
                 'is_cleaned': False
             }
     
+    def check_google_safe_browsing(self, url):
+        """Check URL against Google Safe Browsing API v5alpha1"""
+        api_key = os.environ.get('GOOGLE_SAFE_BROWSING_API_KEY')
+        
+        if not api_key:
+            return None  # API key not configured
+        
+        try:
+            # Use v5alpha1 urls.search method (simpler, sends actual URLs)
+            # URL encode the URL parameter
+            encoded_url = urllib.parse.quote(url, safe='')
+            api_url = f'https://safebrowsing.googleapis.com/v5alpha1/urls:search?key={api_key}&urls={encoded_url}'
+            
+            req = urllib.request.Request(api_url)
+            
+            with urllib.request.urlopen(req, timeout=5) as response:
+                # Response is protocol buffer, but we'll parse as JSON for simplicity
+                content = response.read()
+                
+                # Try to parse as JSON (some responses may be JSON)
+                try:
+                    result = json.loads(content.decode('utf-8'))
+                except:
+                    # If not JSON, check if response is empty (safe)
+                    if not content or len(content) == 0:
+                        return {
+                            'is_safe': True,
+                            'threats': [],
+                            'source': 'Google Safe Browsing v5',
+                            'api_version': 'v5alpha1'
+                        }
+                    # Otherwise, assume it's protobuf and we can't parse it easily
+                    # Fall back to v4 API
+                    return self.check_google_safe_browsing_v4(url)
+                
+                # Parse v5 response
+                if 'threat' in result or 'threats' in result:
+                    # Threat detected
+                    threat_data = result.get('threat', result.get('threats', {}))
+                    threats = []
+                    
+                    if isinstance(threat_data, dict):
+                        threats.append({
+                            'type': threat_data.get('threatType', 'UNKNOWN'),
+                            'platform': threat_data.get('platformType', 'ANY_PLATFORM')
+                        })
+                    elif isinstance(threat_data, list):
+                        for threat in threat_data:
+                            threats.append({
+                                'type': threat.get('threatType', 'UNKNOWN'),
+                                'platform': threat.get('platformType', 'ANY_PLATFORM')
+                            })
+                    
+                    return {
+                        'is_safe': False,
+                        'threats': threats,
+                        'source': 'Google Safe Browsing v5',
+                        'api_version': 'v5alpha1'
+                    }
+                else:
+                    # No threats found
+                    return {
+                        'is_safe': True,
+                        'threats': [],
+                        'source': 'Google Safe Browsing v5',
+                        'api_version': 'v5alpha1'
+                    }
+                    
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                # URL not found in threat lists (safe)
+                return {
+                    'is_safe': True,
+                    'threats': [],
+                    'source': 'Google Safe Browsing v5',
+                    'api_version': 'v5alpha1'
+                }
+            print(f"Google Safe Browsing API HTTP error: {e.code} - {e.reason}")
+            # Fall back to v4 API
+            return self.check_google_safe_browsing_v4(url)
+        except Exception as e:
+            print(f"Google Safe Browsing API error: {e}")
+            # Try v4 API as fallback
+            return self.check_google_safe_browsing_v4(url)
+    
+    def check_google_safe_browsing_v4(self, url):
+        """Fallback to Google Safe Browsing API v4"""
+        api_key = os.environ.get('GOOGLE_SAFE_BROWSING_API_KEY')
+        
+        if not api_key:
+            return None
+        
+        try:
+            api_url = f'https://safebrowsing.googleapis.com/v4/threatMatches:find?key={api_key}'
+            
+            payload = {
+                "client": {
+                    "clientId": "urlxpanda",
+                    "clientVersion": "1.0.0"
+                },
+                "threatInfo": {
+                    "threatTypes": [
+                        "MALWARE",
+                        "SOCIAL_ENGINEERING",
+                        "UNWANTED_SOFTWARE",
+                        "POTENTIALLY_HARMFUL_APPLICATION"
+                    ],
+                    "platformTypes": ["ANY_PLATFORM"],
+                    "threatEntryTypes": ["URL"],
+                    "threatEntries": [
+                        {"url": url}
+                    ]
+                }
+            }
+            
+            req = urllib.request.Request(
+                api_url,
+                data=json.dumps(payload).encode('utf-8'),
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            with urllib.request.urlopen(req, timeout=5) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                
+                if 'matches' in result and result['matches']:
+                    threats = []
+                    for match in result['matches']:
+                        threat_type = match.get('threatType', 'UNKNOWN')
+                        threats.append({
+                            'type': threat_type,
+                            'platform': match.get('platformType', 'UNKNOWN')
+                        })
+                    
+                    return {
+                        'is_safe': False,
+                        'threats': threats,
+                        'source': 'Google Safe Browsing v4',
+                        'api_version': 'v4'
+                    }
+                else:
+                    return {
+                        'is_safe': True,
+                        'threats': [],
+                        'source': 'Google Safe Browsing v4',
+                        'api_version': 'v4'
+                    }
+                    
+        except Exception as e:
+            print(f"Google Safe Browsing v4 API error: {e}")
+            return None
+    
     def check_safety(self, url):
-        """Enhanced safety check with reputation scoring"""
+        """Enhanced safety check with Google Safe Browsing and pattern matching"""
         parsed = urlparse(url)
+        
+        # Check Google Safe Browsing first
+        gsb_result = self.check_google_safe_browsing(url)
         
         # Check for HTTPS
         is_https = parsed.scheme == 'https'
@@ -352,18 +506,25 @@ class URLXpandaHandler(SimpleHTTPRequestHandler):
         # Calculate safety score (0-100, higher is safer)
         safety_score = 100
         
-        if not is_https:
-            safety_score -= 30
-        if is_suspicious:
-            safety_score -= 20
-        if has_malicious_pattern:
-            safety_score -= 40
-        if has_suspicious_tld:
-            safety_score -= 15
-        if is_ip_address:
-            safety_score -= 25
-        if has_excessive_subdomains:
-            safety_score -= 10
+        # Google Safe Browsing takes priority
+        if gsb_result and not gsb_result['is_safe']:
+            safety_score = 0  # Confirmed threat
+            has_confirmed_threat = True
+        else:
+            has_confirmed_threat = False
+            
+            if not is_https:
+                safety_score -= 30
+            if is_suspicious:
+                safety_score -= 20
+            if has_malicious_pattern:
+                safety_score -= 40
+            if has_suspicious_tld:
+                safety_score -= 15
+            if is_ip_address:
+                safety_score -= 25
+            if has_excessive_subdomains:
+                safety_score -= 10
         
         # Ensure score is between 0 and 100
         safety_score = max(0, min(100, safety_score))
@@ -382,9 +543,12 @@ class URLXpandaHandler(SimpleHTTPRequestHandler):
             'domain': parsed.netloc,
             'safety_score': safety_score,
             'risk_level': risk_level,
+            'google_safe_browsing': gsb_result,
+            'has_confirmed_threat': has_confirmed_threat,
             'warnings': self.generate_safety_warnings(
                 is_https, is_suspicious, has_malicious_pattern, 
-                has_suspicious_tld, is_ip_address, has_excessive_subdomains
+                has_suspicious_tld, is_ip_address, has_excessive_subdomains,
+                gsb_result
             )
         }
     
@@ -398,9 +562,30 @@ class URLXpandaHandler(SimpleHTTPRequestHandler):
         return bool(re.match(ipv4_pattern, domain) or re.match(ipv6_pattern, domain))
     
     def generate_safety_warnings(self, is_https, is_suspicious, has_malicious_pattern, 
-                                  has_suspicious_tld, is_ip_address, has_excessive_subdomains):
+                                  has_suspicious_tld, is_ip_address, has_excessive_subdomains,
+                                  gsb_result=None):
         """Generate list of safety warnings"""
         warnings = []
+        
+        # Google Safe Browsing threats (highest priority)
+        if gsb_result and not gsb_result['is_safe']:
+            for threat in gsb_result['threats']:
+                threat_type = threat['type']
+                
+                # Map threat types to user-friendly messages
+                threat_messages = {
+                    'MALWARE': 'This URL is flagged for distributing malware',
+                    'SOCIAL_ENGINEERING': 'This URL is flagged as a phishing or social engineering site',
+                    'UNWANTED_SOFTWARE': 'This URL may distribute unwanted software',
+                    'POTENTIALLY_HARMFUL_APPLICATION': 'This URL may contain potentially harmful applications'
+                }
+                
+                warnings.append({
+                    'type': 'google_safe_browsing',
+                    'severity': 'critical',
+                    'message': threat_messages.get(threat_type, f'Threat detected: {threat_type}'),
+                    'source': 'Google Safe Browsing'
+                })
         
         if not is_https:
             warnings.append({

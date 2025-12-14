@@ -161,6 +161,12 @@
     background: var(--bg-secondary);
 }
 
+.warning-item.severity-critical {
+    background: rgba(220, 38, 38, 0.15);
+    border-left: 4px solid #dc2626;
+    border: 2px solid #dc2626;
+}
+
 .warning-item.severity-high {
     background: rgba(239, 68, 68, 0.1);
     border-left: 3px solid var(--error-color);
@@ -181,11 +187,32 @@
     flex-shrink: 0;
 }
 
-.warning-text {
+.warning-content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.warning-text {
     font-size: 0.875rem;
     line-height: 1.5;
     color: var(--text-primary);
+    font-weight: 500;
+}
+
+.warning-source {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.warning-source::before {
+    content: '🔍';
+    font-size: 0.875rem;
 }
 
 /* Cleaned URL Section Styles */

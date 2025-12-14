@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>URLXpanda - Expand Shortened URLs Safely</title>
+    <meta name="title" content="URLXpanda - Expand Shortened URLs Safely">
+    <meta name="description" content="A powerful URL expansion tool built with Rust and WebAssembly. Expand shortened URLs, get rich previews, and stay safe online with privacy-focused client-side processing.">
+    <meta name="keywords" content="URL expansion, shortened URLs, bit.ly, tinyurl, link preview, web security, Rust, WebAssembly, privacy">
+    <meta name="author" content="Daryn Ongera">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://urlxpanda.netlify.app/">
+    <meta property="og:title" content="URLXpanda - Expand Shortened URLs Safely">
+    <meta property="og:description" content="A powerful URL expansion tool built with Rust and WebAssembly. Expand shortened URLs, get rich previews, and stay safe online with privacy-focused client-side processing.">
+    <meta property="og:image" content="https://urlxpanda.netlify.app/og.jpg">
+    <meta property="og:image:width" content="1080">
+    <meta property="og:image:height" content="1080">
+    <meta property="og:image:alt" content="URLXpanda - URL Expansion Tool">
+    <meta property="og:site_name" content="URLXpanda">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://urlxpanda.netlify.app/">
+    <meta property="twitter:title" content="URLXpanda - Expand Shortened URLs Safely">
+    <meta property="twitter:description" content="A powerful URL expansion tool built with Rust and WebAssembly. Expand shortened URLs, get rich previews, and stay safe online.">
+    <meta property="twitter:image" content="https://urlxpanda.netlify.app/og.jpg">
+    <meta property="twitter:image:alt" content="URLXpanda - URL Expansion Tool">
+    <meta property="twitter:creator" content="@140ngera">
+    <meta property="twitter:site" content="@140ngera">
+    
+    <!-- Additional Meta Tags -->
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://urlxpanda.netlify.app/">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "URLXpanda",
+        "description": "A powerful URL expansion tool built with Rust and WebAssembly. Expand shortened URLs, get rich previews, and stay safe online.",
+        "url": "https://urlxpanda.onrender.com/",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "Web Browser",
+        "author": {
+            "@type": "Person",
+            "name": "Daryn Ongera",
+            "url": "https://ongeradaryn.blog/about"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "URL Expansion",
+            "Rich Link Previews",
+            "Safety Indicators",
+            "Privacy-Focused Processing",
+            "Multi-Platform Support"
+        ]
+    }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🔗</span>
+                <h1>URLXpanda</h1>
+            </div>
+            <p class="subtitle">Expand shortened URLs to their final destinations</p>
+        </header>
+
+        <main class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="url-input" class="input-label">Enter URL to expand:</label>
+                    <div class="input-wrapper">
+                        <input 
+                            type="url" 
+                            id="url-input" 
+                            class="url-input" 
+                            placeholder="https://bit.ly/example or https://tinyurl.com/example"
+                            autocomplete="url"
+                            spellcheck="false"
+                        >
+                        <button id="expand-btn" class="expand-btn" type="button">
+                            <span class="btn-text">Expand URL</span>
+                            <span class="btn-loading">
+                                <div class="spinner"></div>
+                                Expanding...
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <details class="settings-details">
+                        <summary class="settings-summary">Advanced Settings</summary>
+                        <div class="settings-content">
+                            <div class="setting-item">
+                                <label for="max-redirects">Max Redirects:</label>
+                                <input type="number" id="max-redirects" value="10" min="1" max="50">
+                            </div>
+                            <div class="setting-item">
+                                <label for="timeout">Timeout (ms):</label>
+                                <input type="number" id="timeout" value="10000" min="1000" max="60000" step="1000">
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <div id="result-container" class="result-container hidden">
+                    <div class="result-header">
+                        <h3>Expansion Result</h3>
+                        <button id="copy-btn" class="copy-btn">📋 Copy Final URL</button>
+                    </div>
+                    <div class="result-basic">
+                        <div class="url-comparison">
+                            <div class="url-item original">
+                                <span class="url-label">Original:</span>
+                                <span id="original-url" class="url-value"></span>
+                            </div>
+                            <div class="url-item final">
+                                <span class="url-label">Final:</span>
+                                <span id="final-url" class="url-value"></span>
+                            </div>
+                        </div>
+                        <div class="result-meta">
+                            <span id="redirect-count" class="meta-item"></span>
+                            <span id="expansion-time" class="meta-item"></span>
+                        </div>
+                    </div>
+                    <div class="result-content">
+                        <!-- Rich content will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <div id="error-container" class="error-container hidden">
+                    <div class="error-header">
+                        <span class="error-icon">⚠️</span>
+                        <h3>Error</h3>
+                    </div>
+                    <div id="error-message" class="error-message"></div>
+                    <button id="retry-btn" class="retry-btn">Try Again</button>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <div class="history-header">
+                    <h3>Recent Expansions</h3>
+                    <button id="clear-history" class="clear-btn">Clear All</button>
+                </div>
+                <div id="history-list" class="history-list">
+                    <div class="history-empty">
+                        <p>No recent expansions. Start by entering a URL above.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p>Built with Rust + WebAssembly</p>
+                <div class="footer-links">
+                    <a href="https://github.com/DarynOngera/urlxpanda" target="_blank" rel="noopener">GitHub</a>
+                    <span>•</span>
+                    <a href="#" id="about-link">About</a>
+                    <span>•</span>
+                    <a href="https://ongeradaryn.blog/about" target="_blank" rel="noopener">Powered by</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>About URLXpanda</h2>
+                <button id="close-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>URLXpanda is a fast and secure URL expansion tool built with Rust and WebAssembly.</p>
+                <h4>Features:</h4>
+                <ul>
+                    <li>Secure client-side URL expansion</li>
+                    <li>Support for all major URL shorteners</li>
+                    <li>Configurable redirect limits and timeouts</li>
+                    <li>No data sent to external servers</li>
+                    <li>Fast WebAssembly performance</li>
+                </ul>
+                <h4>Privacy:</h4>
+                <p>All URL expansion happens directly in your browser. No URLs are sent to our servers.</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

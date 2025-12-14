@@ -129,7 +129,32 @@ urlxpanda/
 
 ## 🌐 Deployment
 
-### Deploy to Netlify (Free)
+### Deploy to Render (Recommended for Backend)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+**Quick 5-Minute Deployment:**
+
+1. **Fork this repository** on GitHub
+2. **Connect to Render**:
+   - Go to [render.com](https://render.com) and sign up/login
+   - Click "New +" → "Blueprint"
+   - Select your forked repository
+3. **Deploy**: Render automatically detects `render.yaml` and deploys
+4. **Done!** Your URLXpanda will be live at `https://urlxpanda.onrender.com`
+
+**Features:**
+- ✅ Free tier available (no credit card required)
+- ✅ Auto-deploy on git push
+- ✅ Built-in SSL certificates
+- ✅ Python + WASM support
+
+**Documentation:**
+- 📖 [Quick Start Guide](./RENDER_QUICKSTART.md) - 5-minute deployment
+- 📖 [Migration Guide](./RAILWAY_TO_RENDER_MIGRATION.md) - Detailed instructions
+- 📖 [Comparison](./RAILWAY_VS_RENDER.md) - Railway vs Render
+
+### Deploy to Netlify (Alternative - Static Sites)
 
 1. **Fork this repository** on GitHub
 2. **Connect to Netlify**:
