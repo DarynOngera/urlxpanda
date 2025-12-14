@@ -494,7 +494,7 @@ class URLXpandaApp {
                         </div>
                     </div>
                     ${this.generateGoogleSafeBrowsingBadge(safety)}
-                    <p class="safety-info">Security analysis using Google Safe Browsing API + pattern matching</p>
+                    <p class="safety-info">${this.getSafetyInfoText(safety)}</p>
                 </div>
                 ${warnings.length > 0 ? `
                     <div class="safety-warnings">
@@ -508,34 +508,59 @@ class URLXpandaApp {
         `;
     }
 
+    getSafetyInfoText(safety) {
+        const gsb = safety.google_safe_browsing;
+        const checks = [];
+        
+        // What was checked
+        if (gsb) {
+            checks.push('Google threat database');
+        }
+        if (!safety.is_https) {
+            checks.push('HTTPS encryption');
+        }
+        checks.push('suspicious patterns');
+        checks.push('domain reputation');
+        
+        return `Analyzed: ${checks.join(', ')}`;
+    }
+
     generateGoogleSafeBrowsingBadge(safety) {
         const gsb = safety.google_safe_browsing;
         
         if (!gsb) {
-            return `
-                <div class="gsb-badge gsb-disabled">
-                    <span class="gsb-icon">⚠️</span>
-                    <span class="gsb-text">Google Safe Browsing: Not Available</span>
-                </div>
-            `;
+            return ''; // Don't show anything if API not available
         }
         
         const isSafe = gsb.is_safe;
-        const threatCount = gsb.threats ? gsb.threats.length : 0;
-        const apiVersion = gsb.api_version || 'v4';
+        const threats = gsb.threats || [];
         
         if (isSafe) {
             return `
                 <div class="gsb-badge gsb-safe">
-                    <span class="gsb-icon">✓</span>
-                    <span class="gsb-text">Verified Safe by Google (${apiVersion})</span>
+                    <span class="gsb-icon">🔍</span>
+                    <span class="gsb-text">Checked against Google's threat database - No known threats</span>
                 </div>
             `;
         } else {
+            // Get threat types
+            const threatTypes = threats.map(t => {
+                const typeMap = {
+                    'MALWARE': 'Malware',
+                    'SOCIAL_ENGINEERING': 'Phishing/Social Engineering',
+                    'UNWANTED_SOFTWARE': 'Unwanted Software',
+                    'POTENTIALLY_HARMFUL_APPLICATION': 'Potentially Harmful App'
+                };
+                return typeMap[t.type] || t.type;
+            });
+            
             return `
                 <div class="gsb-badge gsb-threat">
-                    <span class="gsb-icon">🛑</span>
-                    <span class="gsb-text">Threat Detected by Google (${threatCount} ${threatCount === 1 ? 'threat' : 'threats'})</span>
+                    <span class="gsb-icon">⚠️</span>
+                    <div class="gsb-details">
+                        <strong>Google Safe Browsing Alert:</strong>
+                        <span class="gsb-threat-types">${threatTypes.join(', ')}</span>
+                    </div>
                 </div>
             `;
         }
