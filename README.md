@@ -27,6 +27,10 @@ Visit **[urlxpanda.onrender.com](https://urlxpanda.onrender.com)** to use URLXpa
 git clone https://github.com/DarynOngera/urlxpanda.git
 cd urlxpanda
 
+# Configure environment variables (optional)
+cp .env.example .env
+# Edit .env and add your Google Safe Browsing API key if desired
+
 # Build and run the web app
 cd web
 ./build.sh
@@ -34,6 +38,18 @@ python3 serve.py
 
 # Open http://localhost:8000
 ```
+
+#### Environment Variables
+
+URLXpanda supports the following environment variables (see `.env.example`):
+
+- **`GOOGLE_SAFE_BROWSING_API_KEY`** - Optional. Enables real-time threat detection via Google Safe Browsing API
+- **`PORT`** - Server port (default: 8000)
+- **`CORS_ORIGIN`** - CORS origin (default: *)
+- **`MAX_REDIRECTS`** - Maximum redirects to follow (default: 10)
+- **`REQUEST_TIMEOUT`** - Request timeout in seconds (default: 10)
+
+See [API_SETUP.md](./API_SETUP.md) for Google Safe Browsing API setup instructions.
 
 ## 🚀 Quick Deploy to Netlify
 
