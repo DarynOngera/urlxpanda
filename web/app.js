@@ -13,6 +13,7 @@ class URLXpandaApp {
         // Input elements
         this.urlInput = document.getElementById('url-input');
         this.expandBtn = document.getElementById('expand-btn');
+        this.urlCleaningToggle = document.getElementById('url-cleaning-toggle');
 
         // Result elements
         this.resultContainer = document.getElementById('result-container');
@@ -38,6 +39,10 @@ class URLXpandaApp {
         this.downloadModal = document.getElementById('download-modal');
         this.downloadLink = document.getElementById('download-link');
         this.closeDownloadModalBtn = document.getElementById('close-download-modal');
+        
+        // Initialize toggle state from localStorage
+        const cleaningEnabled = localStorage.getItem('urlCleaningEnabled') !== 'false';
+        this.urlCleaningToggle.checked = cleaningEnabled;
     }
 
     attachEventListeners() {
@@ -47,6 +52,15 @@ class URLXpandaApp {
             if (e.key === 'Enter') this.expandUrl();
         });
         this.urlInput.addEventListener('input', () => this.validateInput());
+        
+        // Settings
+        this.urlCleaningToggle.addEventListener('change', (e) => {
+            localStorage.setItem('urlCleaningEnabled', e.target.checked);
+            this.showNotification(
+                e.target.checked ? 'URL cleaning enabled' : 'URL cleaning disabled',
+                'success'
+            );
+        });
 
         // Actions
         this.copyBtn.addEventListener('click', () => this.copyToClipboard());
@@ -275,7 +289,10 @@ class URLXpandaApp {
     }
 
     generateCleanedUrlHTML(result) {
-        if (!result.has_tracking) return '';
+        // Check if user has enabled URL cleaning
+        const cleaningEnabled = localStorage.getItem('urlCleaningEnabled') !== 'false';
+        
+        if (!cleaningEnabled || !result.has_tracking) return '';
         
         const removedParams = result.removed_tracking_params || [];
         const cleanedUrl = result.cleaned_url || result.final_url;
@@ -283,7 +300,6 @@ class URLXpandaApp {
         return `
             <div class="cleaned-url-section">
                 <div class="cleaned-header">
-                    <span class="clean-icon">🧹</span>
                     <h4>Cleaned URL</h4>
                     <span class="tracking-badge">${removedParams.length} tracking parameter${removedParams.length !== 1 ? 's' : ''} removed</span>
                 </div>
@@ -380,19 +396,16 @@ class URLXpandaApp {
         const riskLevel = safety.risk_level || 'unknown';
         const warnings = safety.warnings || [];
         
-        // Determine score color and icon
-        let scoreColor, scoreIcon, scoreLabel;
+        // Determine score color and label
+        let scoreColor, scoreLabel;
         if (score >= 80) {
             scoreColor = '#10b981'; // green
-            scoreIcon = '✅';
             scoreLabel = 'Safe';
         } else if (score >= 50) {
             scoreColor = '#f59e0b'; // orange
-            scoreIcon = '⚠️';
             scoreLabel = 'Caution';
         } else {
             scoreColor = '#ef4444'; // red
-            scoreIcon = '🚨';
             scoreLabel = 'High Risk';
         }
         
@@ -417,7 +430,6 @@ class URLXpandaApp {
             <div class="safety-indicators ${riskLevel}">
                 <div class="safety-header">
                     <div class="safety-score">
-                        <span class="score-icon">${scoreIcon}</span>
                         <div class="score-details">
                             <span class="score-label">${scoreLabel}</span>
                             <div class="score-bar-container">
@@ -426,6 +438,7 @@ class URLXpandaApp {
                             <span class="score-value">${score}/100</span>
                         </div>
                     </div>
+                    <p class="safety-info">Security analysis performed locally on your device</p>
                 </div>
                 ${warnings.length > 0 ? `
                     <div class="safety-warnings">
