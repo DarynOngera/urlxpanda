@@ -493,6 +493,7 @@ class URLXpandaApp {
                             <span class="score-value">${score}/100</span>
                         </div>
                     </div>
+                    ${this.generateGoogleSafeBrowsingBadge(safety)}
                     <p class="safety-info">Security analysis using Google Safe Browsing API + pattern matching</p>
                 </div>
                 ${warnings.length > 0 ? `
@@ -505,6 +506,39 @@ class URLXpandaApp {
                 ` : ''}
             </div>
         `;
+    }
+
+    generateGoogleSafeBrowsingBadge(safety) {
+        const gsb = safety.google_safe_browsing;
+        
+        if (!gsb) {
+            return `
+                <div class="gsb-badge gsb-disabled">
+                    <span class="gsb-icon">⚠️</span>
+                    <span class="gsb-text">Google Safe Browsing: Not Available</span>
+                </div>
+            `;
+        }
+        
+        const isSafe = gsb.is_safe;
+        const threatCount = gsb.threats ? gsb.threats.length : 0;
+        const apiVersion = gsb.api_version || 'v4';
+        
+        if (isSafe) {
+            return `
+                <div class="gsb-badge gsb-safe">
+                    <span class="gsb-icon">✓</span>
+                    <span class="gsb-text">Verified Safe by Google (${apiVersion})</span>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="gsb-badge gsb-threat">
+                    <span class="gsb-icon">🛑</span>
+                    <span class="gsb-text">Threat Detected by Google (${threatCount} ${threatCount === 1 ? 'threat' : 'threats'})</span>
+                </div>
+            `;
+        }
     }
 
     generateMetaInfoHTML(result) {

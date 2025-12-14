@@ -101,6 +101,45 @@
     font-style: italic;
 }
 
+/* Google Safe Browsing Badge */
+.gsb-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin: 0.75rem 0 0.25rem 0;
+}
+
+.gsb-badge.gsb-safe {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--success-color);
+}
+
+.gsb-badge.gsb-threat {
+    background: rgba(220, 38, 38, 0.15);
+    border: 1px solid #dc2626;
+    color: #dc2626;
+}
+
+.gsb-badge.gsb-disabled {
+    background: rgba(156, 163, 175, 0.1);
+    border: 1px solid rgba(156, 163, 175, 0.3);
+    color: var(--text-muted);
+}
+
+.gsb-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.gsb-text {
+    line-height: 1.4;
+}
+
 .score-label {
     font-weight: 600;
     font-size: 1.1rem;

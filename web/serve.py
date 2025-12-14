@@ -11,6 +11,39 @@ import urllib.error
 from http.server import SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import time
+import os
+from pathlib import Path
+
+# Load environment variables from .env file if it exists
+def load_env_file():
+    """Load environment variables from .env file"""
+    env_file = Path(__file__).parent / '.env'
+    if env_file.exists():
+        print(f"📄 Loading environment variables from {env_file}")
+        with open(env_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                # Skip comments and empty lines
+                if line and not line.startswith('#'):
+                    # Parse KEY=VALUE format
+                    if '=' in line:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+                        # Remove quotes if present
+                        if value.startswith('"') and value.endswith('"'):
+                            value = value[1:-1]
+                        elif value.startswith("'") and value.endswith("'"):
+                            value = value[1:-1]
+                        # Only set if not already in environment
+                        if key not in os.environ:
+                            os.environ[key] = value
+                            print(f"  ✓ Loaded: {key}")
+    else:
+        print(f"ℹ️  No .env file found at {env_file}")
+
+# Load .env file at startup
+load_env_file()
 
 class URLXpandaHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -646,14 +679,20 @@ class URLXpandaHandler(SimpleHTTPRequestHandler):
         error_response = {'error': message}
         self.wfile.write(json.dumps(error_response).encode())
 
-import os
-
 PORT = int(os.environ.get("PORT", 8000))
 Handler = URLXpandaHandler
 
+# Check if Google Safe Browsing API key is configured
+api_key = os.environ.get('GOOGLE_SAFE_BROWSING_API_KEY')
+if api_key:
+    print(f"✅ Google Safe Browsing API: ENABLED (key: {api_key[:10]}...{api_key[-4:]})")
+else:
+    print("⚠️  Google Safe Browsing API: DISABLED (no API key set)")
+    print("   Set GOOGLE_SAFE_BROWSING_API_KEY environment variable to enable")
+
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
-    print(f"🚀 URLXpanda server running at http://localhost:{PORT}")
+    print(f"\n🚀 URLXpanda server running at http://localhost:{PORT}")
     print("📱 Open this URL in your browser to use URLXpanda")
-    print("🔗 API endpoint: http://localhost:{PORT}/api/expand?url=<URL>")
-    print("⏹️  Press Ctrl+C to stop the server")
+    print(f"🔗 API endpoint: http://localhost:{PORT}/api/expand?url=<URL>")
+    print("⏹️  Press Ctrl+C to stop the server\n")
     httpd.serve_forever()
