@@ -355,16 +355,24 @@ class URLXpandaHandler(SimpleHTTPRequestHandler):
                     threats = []
                     
                     if isinstance(threat_data, dict):
-                        threats.append({
-                            'type': threat_data.get('threatType', 'UNKNOWN'),
-                            'platform': threat_data.get('platformType', 'ANY_PLATFORM')
-                        })
-                    elif isinstance(threat_data, list):
-                        for threat in threat_data:
+                        # Single threat object
+                        threat_types = threat_data.get('threatTypes', [])
+                        for threat_type in threat_types:
                             threats.append({
-                                'type': threat.get('threatType', 'UNKNOWN'),
-                                'platform': threat.get('platformType', 'ANY_PLATFORM')
+                                'type': threat_type,
+                                'platform': 'ANY_PLATFORM'
                             })
+                    elif isinstance(threat_data, list):
+                        # Array of threats
+                        for threat in threat_data:
+                            threat_types = threat.get('threatTypes', [threat.get('threatType', 'UNKNOWN')])
+                            if isinstance(threat_types, str):
+                                threat_types = [threat_types]
+                            for threat_type in threat_types:
+                                threats.append({
+                                    'type': threat_type,
+                                    'platform': 'ANY_PLATFORM'
+                                })
                     
                     return {
                         'is_safe': False,
