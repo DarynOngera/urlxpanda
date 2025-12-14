@@ -143,11 +143,17 @@ class URLXpandaHandler(SimpleHTTPRequestHandler):
         # Extract metadata from final URL
         metadata = self.extract_metadata(current_url)
         
+        # Clean the final URL
+        cleaned_info = self.clean_url(current_url)
+        
         return {
             'original_url': url,
             'final_url': current_url,
             'redirect_chain': redirect_chain,
-            'metadata': metadata
+            'metadata': metadata,
+            'cleaned_url': cleaned_info['cleaned_url'],
+            'removed_tracking_params': cleaned_info['removed_params'],
+            'has_tracking': cleaned_info['is_cleaned']
         }
     
     def extract_metadata(self, url):
@@ -235,22 +241,210 @@ class URLXpandaHandler(SimpleHTTPRequestHandler):
         
         return None
     
+    def clean_url(self, url):
+        """Remove tracking parameters from URL"""
+        try:
+            parsed = urlparse(url)
+            
+            # Common tracking parameters to remove
+            tracking_params = {
+                # Google Analytics
+                'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+                # Facebook
+                'fbclid', 'fb_action_ids', 'fb_action_types', 'fb_source', 'fb_ref',
+                # Google Ads
+                'gclid', 'gclsrc', 'dclid',
+                # Microsoft/Bing
+                'msclkid',
+                # Mailchimp
+                'mc_cid', 'mc_eid',
+                # HubSpot
+                '_hsenc', '_hsmi', '__hssc', '__hstc', '__hsfp', 'hsCtaTracking',
+                # Marketo
+                'mkt_tok',
+                # Adobe
+                's_cid',
+                # Twitter
+                'twclid',
+                # LinkedIn
+                'li_fat_id',
+                # Instagram
+                'igshid', 'igsh',
+                # TikTok
+                'tt_medium', 'tt_content',
+                # Other common tracking
+                'ref', 'referrer', 'source', 'campaign',
+                '_ga', '_gl', 'affiliate_id', 'click_id'
+            }
+            
+            # Parse query parameters
+            from urllib.parse import parse_qs, urlencode
+            query_params = parse_qs(parsed.query, keep_blank_values=True)
+            
+            # Remove tracking parameters
+            cleaned_params = {
+                key: value for key, value in query_params.items() 
+                if key.lower() not in tracking_params
+            }
+            
+            # Rebuild query string
+            cleaned_query = urlencode(cleaned_params, doseq=True) if cleaned_params else ''
+            
+            # Reconstruct URL
+            cleaned_url = urllib.parse.urlunparse((
+                parsed.scheme,
+                parsed.netloc,
+                parsed.path,
+                parsed.params,
+                cleaned_query,
+                parsed.fragment
+            ))
+            
+            return {
+                'cleaned_url': cleaned_url,
+                'removed_params': list(set(query_params.keys()) - set(cleaned_params.keys())),
+                'is_cleaned': len(cleaned_params) < len(query_params)
+            }
+        except Exception as e:
+            print(f"Error cleaning URL: {e}")
+            return {
+                'cleaned_url': url,
+                'removed_params': [],
+                'is_cleaned': False
+            }
+    
     def check_safety(self, url):
-        """Basic safety check"""
+        """Enhanced safety check with reputation scoring"""
         parsed = urlparse(url)
         
         # Check for HTTPS
         is_https = parsed.scheme == 'https'
         
-        # Check for suspicious domains (basic list)
-        suspicious_domains = ['bit.do', 'tinyurl.com', 'goo.gl', 't.co']
-        is_suspicious = any(domain in parsed.netloc for domain in suspicious_domains)
+        # Expanded list of suspicious/shortener domains
+        suspicious_domains = [
+            'bit.do', 'tinyurl.com', 'goo.gl', 't.co', 'ow.ly', 'bit.ly',
+            'is.gd', 'buff.ly', 'adf.ly', 'bc.vc', 'soo.gd', 'clicky.me',
+            's2r.co', 'db.tt', 'qr.ae', 'cutt.ly', 'rb.gy', 'short.io'
+        ]
+        
+        # Check for known malicious patterns
+        malicious_patterns = [
+            'phishing', 'malware', 'virus', 'hack', 'crack',
+            'free-download', 'urgent-update', 'verify-account'
+        ]
+        
+        # Check domain reputation
+        domain = parsed.netloc.lower()
+        is_suspicious = any(susp_domain in domain for susp_domain in suspicious_domains)
+        has_malicious_pattern = any(pattern in url.lower() for pattern in malicious_patterns)
+        
+        # Check for suspicious TLDs
+        suspicious_tlds = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.work']
+        has_suspicious_tld = any(domain.endswith(tld) for tld in suspicious_tlds)
+        
+        # Check for IP address instead of domain
+        is_ip_address = self.is_ip_address(domain)
+        
+        # Check for excessive subdomains (potential phishing)
+        subdomain_count = domain.count('.')
+        has_excessive_subdomains = subdomain_count > 3
+        
+        # Calculate safety score (0-100, higher is safer)
+        safety_score = 100
+        
+        if not is_https:
+            safety_score -= 30
+        if is_suspicious:
+            safety_score -= 20
+        if has_malicious_pattern:
+            safety_score -= 40
+        if has_suspicious_tld:
+            safety_score -= 15
+        if is_ip_address:
+            safety_score -= 25
+        if has_excessive_subdomains:
+            safety_score -= 10
+        
+        # Ensure score is between 0 and 100
+        safety_score = max(0, min(100, safety_score))
+        
+        # Determine risk level
+        if safety_score >= 80:
+            risk_level = 'low'
+        elif safety_score >= 50:
+            risk_level = 'medium'
+        else:
+            risk_level = 'high'
         
         return {
             'is_https': is_https,
             'is_suspicious': is_suspicious,
-            'domain': parsed.netloc
+            'domain': parsed.netloc,
+            'safety_score': safety_score,
+            'risk_level': risk_level,
+            'warnings': self.generate_safety_warnings(
+                is_https, is_suspicious, has_malicious_pattern, 
+                has_suspicious_tld, is_ip_address, has_excessive_subdomains
+            )
         }
+    
+    def is_ip_address(self, domain):
+        """Check if domain is an IP address"""
+        import re
+        # Simple IPv4 check
+        ipv4_pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
+        # Simple IPv6 check
+        ipv6_pattern = r'^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$'
+        return bool(re.match(ipv4_pattern, domain) or re.match(ipv6_pattern, domain))
+    
+    def generate_safety_warnings(self, is_https, is_suspicious, has_malicious_pattern, 
+                                  has_suspicious_tld, is_ip_address, has_excessive_subdomains):
+        """Generate list of safety warnings"""
+        warnings = []
+        
+        if not is_https:
+            warnings.append({
+                'type': 'no_https',
+                'severity': 'medium',
+                'message': 'This URL uses HTTP instead of HTTPS - your connection is not encrypted'
+            })
+        
+        if is_suspicious:
+            warnings.append({
+                'type': 'url_shortener',
+                'severity': 'low',
+                'message': 'This is a known URL shortener domain'
+            })
+        
+        if has_malicious_pattern:
+            warnings.append({
+                'type': 'malicious_pattern',
+                'severity': 'high',
+                'message': 'URL contains patterns commonly associated with phishing or malware'
+            })
+        
+        if has_suspicious_tld:
+            warnings.append({
+                'type': 'suspicious_tld',
+                'severity': 'medium',
+                'message': 'Domain uses a TLD commonly associated with spam or malicious content'
+            })
+        
+        if is_ip_address:
+            warnings.append({
+                'type': 'ip_address',
+                'severity': 'medium',
+                'message': 'URL uses an IP address instead of a domain name'
+            })
+        
+        if has_excessive_subdomains:
+            warnings.append({
+                'type': 'excessive_subdomains',
+                'severity': 'low',
+                'message': 'URL has many subdomains, which may indicate phishing'
+            })
+        
+        return warnings
     
     def send_error_response(self, code, message):
         self.send_response(code)

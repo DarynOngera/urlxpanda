@@ -199,6 +199,28 @@ class URLXpandaApp {
             });
             img.style.cursor = 'pointer';
         });
+        
+        // Add click handlers for copy cleaned URL buttons
+        const copyCleanedBtns = this.resultContainer.querySelectorAll('.copy-cleaned-btn');
+        copyCleanedBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const url = btn.dataset.url;
+                try {
+                    await navigator.clipboard.writeText(url);
+                    this.showNotification('Cleaned URL copied to clipboard!', 'success');
+                    
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '✓ Copied';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+                } catch (error) {
+                    console.error('Failed to copy:', error);
+                    this.showNotification('Failed to copy URL', 'error');
+                }
+            });
+        });
     }
 
     showImageModal(src, alt) {
@@ -246,8 +268,50 @@ class URLXpandaApp {
         return `
             ${this.generateRedirectChainHTML(redirectChain)}
             ${metadata ? this.generatePreviewCardHTML(metadata, result.final_url) : ''}
+            ${this.generateCleanedUrlHTML(result)}
             ${this.generateSafetyIndicatorsHTML(metadata)}
             ${this.generateMetaInfoHTML(result)}
+        `;
+    }
+
+    generateCleanedUrlHTML(result) {
+        if (!result.has_tracking) return '';
+        
+        const removedParams = result.removed_tracking_params || [];
+        const cleanedUrl = result.cleaned_url || result.final_url;
+        
+        return `
+            <div class="cleaned-url-section">
+                <div class="cleaned-header">
+                    <span class="clean-icon">🧹</span>
+                    <h4>Cleaned URL</h4>
+                    <span class="tracking-badge">${removedParams.length} tracking parameter${removedParams.length !== 1 ? 's' : ''} removed</span>
+                </div>
+                <div class="cleaned-content">
+                    <div class="url-comparison-clean">
+                        <div class="url-box original-box">
+                            <label>Original URL:</label>
+                            <code class="url-code">${this.escapeHtml(result.final_url)}</code>
+                        </div>
+                        <div class="arrow-down">↓</div>
+                        <div class="url-box cleaned-box">
+                            <label>Cleaned URL:</label>
+                            <code class="url-code cleaned">${this.escapeHtml(cleanedUrl)}</code>
+                            <button class="copy-cleaned-btn" data-url="${this.escapeHtml(cleanedUrl)}">
+                                📋 Copy Clean URL
+                            </button>
+                        </div>
+                    </div>
+                    ${removedParams.length > 0 ? `
+                        <details class="removed-params">
+                            <summary>Removed tracking parameters (${removedParams.length})</summary>
+                            <ul class="param-list">
+                                ${removedParams.map(param => `<li><code>${this.escapeHtml(param)}</code></li>`).join('')}
+                            </ul>
+                        </details>
+                    ` : ''}
+                </div>
+            </div>
         `;
     }
 
@@ -312,36 +376,65 @@ class URLXpandaApp {
         if (!metadata || !metadata.is_safe) return '';
         
         const safety = metadata.is_safe;
-        const warnings = [];
+        const score = safety.safety_score || 0;
+        const riskLevel = safety.risk_level || 'unknown';
+        const warnings = safety.warnings || [];
         
-        if (!safety.is_https) {
-            warnings.push('This URL uses HTTP instead of HTTPS');
+        // Determine score color and icon
+        let scoreColor, scoreIcon, scoreLabel;
+        if (score >= 80) {
+            scoreColor = '#10b981'; // green
+            scoreIcon = '✅';
+            scoreLabel = 'Safe';
+        } else if (score >= 50) {
+            scoreColor = '#f59e0b'; // orange
+            scoreIcon = '⚠️';
+            scoreLabel = 'Caution';
+        } else {
+            scoreColor = '#ef4444'; // red
+            scoreIcon = '🚨';
+            scoreLabel = 'High Risk';
         }
         
-        if (safety.is_suspicious) {
-            warnings.push('This domain is known for URL shortening and may hide the final destination');
-        }
-        
-        if (warnings.length === 0) {
+        // Build warnings HTML
+        const warningItems = warnings.map(warning => {
+            const severityClass = warning.severity || 'low';
+            const severityIcon = {
+                'high': '🚨',
+                'medium': '⚠️',
+                'low': 'ℹ️'
+            }[severityClass] || 'ℹ️';
+            
             return `
-                <div class="safety-indicators safe">
-                    <span class="safety-icon">✅</span>
-                    <span>This URL appears to be safe</span>
-                </div>
+                <li class="warning-item severity-${severityClass}">
+                    <span class="warning-icon">${severityIcon}</span>
+                    <span class="warning-text">${this.escapeHtml(warning.message)}</span>
+                </li>
             `;
-        }
-        
-        const warningItems = warnings.map(warning => `<li>${warning}</li>`).join('');
+        }).join('');
         
         return `
-            <div class="safety-indicators warning">
+            <div class="safety-indicators ${riskLevel}">
                 <div class="safety-header">
-                    <span class="safety-icon">⚠️</span>
-                    <span>Safety Warnings</span>
+                    <div class="safety-score">
+                        <span class="score-icon">${scoreIcon}</span>
+                        <div class="score-details">
+                            <span class="score-label">${scoreLabel}</span>
+                            <div class="score-bar-container">
+                                <div class="score-bar" style="width: ${score}%; background-color: ${scoreColor};"></div>
+                            </div>
+                            <span class="score-value">${score}/100</span>
+                        </div>
+                    </div>
                 </div>
-                <ul class="warning-list">
-                    ${warningItems}
-                </ul>
+                ${warnings.length > 0 ? `
+                    <div class="safety-warnings">
+                        <h5>Security Warnings:</h5>
+                        <ul class="warning-list">
+                            ${warningItems}
+                        </ul>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
