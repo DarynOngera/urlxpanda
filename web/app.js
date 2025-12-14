@@ -292,35 +292,83 @@ class URLXpandaApp {
         // Check if user has enabled URL cleaning
         const cleaningEnabled = localStorage.getItem('urlCleaningEnabled') !== 'false';
         
-        if (!cleaningEnabled || !result.has_tracking) return '';
+        if (!cleaningEnabled) return '';
         
         const removedParams = result.removed_tracking_params || [];
         const cleanedUrl = result.cleaned_url || result.final_url;
+        const hasTrackers = result.has_tracking || removedParams.length > 0;
+        const isCleaningSuccessful = result.is_cleaned !== false; // Assume success unless explicitly false
         
+        // Show notification for all cases
+        if (!hasTrackers) {
+            // No trackers found - show success message
+            return `
+                <div class="cleaned-url-section no-trackers">
+                    <div class="cleaned-header">
+                        <h4>✓ URL Scan Complete</h4>
+                        <span class="tracking-badge success">No trackers detected</span>
+                    </div>
+                    <div class="cleaned-content">
+                        <div class="clean-status-message success">
+                            <span class="status-icon">✓</span>
+                            <div class="status-text">
+                                <strong>Clean URL</strong>
+                                <p>This URL contains no known tracking parameters.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Trackers found - show cleaning results
         return `
-            <div class="cleaned-url-section">
+            <div class="cleaned-url-section ${isCleaningSuccessful ? 'cleaned-success' : 'cleaned-error'}">
                 <div class="cleaned-header">
-                    <h4>Cleaned URL</h4>
-                    <span class="tracking-badge">${removedParams.length} tracking parameter${removedParams.length !== 1 ? 's' : ''} removed</span>
+                    <h4>${isCleaningSuccessful ? '✓' : '⚠'} URL Cleaning ${isCleaningSuccessful ? 'Successful' : 'Failed'}</h4>
+                    <span class="tracking-badge ${isCleaningSuccessful ? 'warning' : 'error'}">
+                        ${removedParams.length} tracker${removedParams.length !== 1 ? 's' : ''} ${isCleaningSuccessful ? 'removed' : 'detected'}
+                    </span>
                 </div>
                 <div class="cleaned-content">
+                    ${isCleaningSuccessful ? `
+                        <div class="clean-status-message success">
+                            <span class="status-icon">✓</span>
+                            <div class="status-text">
+                                <strong>Trackers Removed</strong>
+                                <p>Successfully removed ${removedParams.length} tracking parameter${removedParams.length !== 1 ? 's' : ''} from this URL.</p>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="clean-status-message error">
+                            <span class="status-icon">⚠</span>
+                            <div class="status-text">
+                                <strong>Cleaning Failed</strong>
+                                <p>Unable to remove tracking parameters. The original URL is shown below.</p>
+                            </div>
+                        </div>
+                    `}
+                    
                     <div class="url-comparison-clean">
                         <div class="url-box original-box">
                             <label>Original URL:</label>
                             <code class="url-code">${this.escapeHtml(result.final_url)}</code>
                         </div>
-                        <div class="arrow-down">↓</div>
-                        <div class="url-box cleaned-box">
-                            <label>Cleaned URL:</label>
-                            <code class="url-code cleaned">${this.escapeHtml(cleanedUrl)}</code>
-                            <button class="copy-cleaned-btn" data-url="${this.escapeHtml(cleanedUrl)}">
-                                📋 Copy Clean URL
-                            </button>
-                        </div>
+                        ${isCleaningSuccessful ? `
+                            <div class="arrow-down">↓</div>
+                            <div class="url-box cleaned-box">
+                                <label>Cleaned URL:</label>
+                                <code class="url-code cleaned">${this.escapeHtml(cleanedUrl)}</code>
+                                <button class="copy-cleaned-btn" data-url="${this.escapeHtml(cleanedUrl)}">
+                                    📋 Copy Clean URL
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
+                    
                     ${removedParams.length > 0 ? `
-                        <details class="removed-params">
-                            <summary>Removed tracking parameters (${removedParams.length})</summary>
+                        <details class="removed-params" ${isCleaningSuccessful ? 'open' : ''}>
+                            <summary>${isCleaningSuccessful ? 'Removed' : 'Detected'} tracking parameters (${removedParams.length})</summary>
                             <ul class="param-list">
                                 ${removedParams.map(param => `<li><code>${this.escapeHtml(param)}</code></li>`).join('')}
                             </ul>
